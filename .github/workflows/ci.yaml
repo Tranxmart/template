@@ -128,7 +128,14 @@ jobs:
       - run: format
         working-directory: "${{ steps.generate.outputs.dir }}"
 
-      - name: format made no changes
+      - name: commit format changes
+        working-directory: "${{ steps.generate.outputs.dir }}"
+        run: git add -A && git diff --cached --quiet || git commit -m "apply format"
+
+      - run: format
+        working-directory: "${{ steps.generate.outputs.dir }}"
+
+      - name: format is idempotent
         working-directory: "${{ steps.generate.outputs.dir }}"
         run: git diff --exit-code
 

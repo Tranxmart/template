@@ -1,6 +1,7 @@
 "init.axl - Provide a wizard to generate a new Bazel project using copier"
 
-TEMPLATE_URL = "https://github.com/tranxmart/template"
+# TEMPLATE_URL = "https://github.com/tranxmart/template"
+TEMPLATE_URL = "~/workspace/template"
 
 def _log(ctx, message):
     if ctx.std.env.var("VERBOSE"):
