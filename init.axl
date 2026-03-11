@@ -1,7 +1,7 @@
 "init.axl - Provide a wizard to generate a new Bazel project using copier"
 
-# TEMPLATE_URL = "https://github.com/tranxmart/template"
-TEMPLATE_URL = "~/workspace/template"
+DEFAULT_TEMPLATE_URL = "https://github.com/tranxmart/template"
+TEMPLATE_URL_ENV = "ASPECT_TEMPLATE_URL"
 
 def _log(ctx, message):
     if ctx.std.env.var("VERBOSE"):
@@ -33,9 +33,23 @@ def _impl(ctx):
     """Implementation of init task."""
     copier_bin, copier_prefix = _find_copier(ctx)
 
-    template_url = TEMPLATE_URL
+    template_url = (
+        ctx.args.template_url
+        if ctx.args.template_url
+        else (
+            ctx.std.env.var(TEMPLATE_URL_ENV)
+            if ctx.std.env.var(TEMPLATE_URL_ENV)
+            else DEFAULT_TEMPLATE_URL
+        )
+    )
 
     copier_args = copier_prefix + ["copy", "--trust"]
+    if ctx.args.project_name:
+        copier_args.extend(["--data", "project_name={}".format(ctx.args.project_name)])
+    if ctx.args.defaults:
+        copier_args.append("--defaults")
+    if ctx.args.skip_tasks:
+        copier_args.append("--skip-tasks")
 
     copier_args.append(template_url)
 
@@ -63,6 +77,10 @@ init = task(
     description = "Initialize a new Bazel project using the Aspect Workflows Template",
     implementation = _impl,
     args = {
-        "output_dir": args.string(required = False)
+        "output_dir": args.string(required = False),
+        "template_url": args.string(required = False),
+        "project_name": args.string(required = False),
+        "defaults": args.string(required = False),
+        "skip_tasks": args.string(required = False),
     },
 )

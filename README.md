@@ -40,6 +40,12 @@ cd my_project
 copier update --trust
 ```
 
+When using `aspect init`, you can override the template source in CI/local tests:
+
+```sh
+ASPECT_TEMPLATE_URL=/path/to/local/template aspect init --output_dir my_project
+```
+
 ## Template Options
 
 ### Languages

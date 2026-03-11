@@ -17,6 +17,41 @@ jobs:
         id: generate
         run: echo "presets=$(python3 ./scripts/ci/list-presets.py --format json-array)" >> "$GITHUB_OUTPUT"
 
+  init-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uuidgen dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y uuid-runtime
+
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
+        with:
+          enable-cache: true
+
+      - name: Expose devbox tools on PATH
+        run: |
+          copier_bin="$(devbox -q run -- which copier)"
+          echo "PATH=$(dirname "${copier_bin}"):${PATH}" >> "$GITHUB_ENV"
+
+      - name: Install Aspect CLI
+        run: curl -fsSL https://install.aspect.build | bash
+
+      - name: Run init task against local template
+        run: |
+          ASPECT_TEMPLATE_URL="$GITHUB_WORKSPACE" \
+            aspect init \
+            --output_dir /tmp/init_task_smoke \
+            --project_name ci_smoke \
+            --defaults true \
+            --skip_tasks true
+          test -f /tmp/init_task_smoke/MODULE.bazel
+          test -f /tmp/init_task_smoke/.bazelrc
+          test -f /tmp/init_task_smoke/BUILD
+
   test:
     needs: define-matrix
     runs-on: ubuntu-latest
@@ -29,20 +64,33 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Install ruby system dependencies
+        if: ${{ contains(matrix.preset.langs, 'ruby') }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyaml-dev
+
       - name: Install devbox
         uses: jetify-com/devbox-install-action@v0.14.0
         with:
           enable-cache: true
 
+      - name: Expose devbox tools on PATH
+        run: |
+          copier_bin="$(devbox -q run -- which copier)"
+          bazel_bin="$(devbox -q run -- which bazel)"
+          tool_path="$(dirname "${copier_bin}"):$(dirname "${bazel_bin}")"
+          echo "PATH=${tool_path}:${PATH}" >> "$GITHUB_ENV"
+
       - name: Run preset validation
-        run: devbox run -- ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
+        run: ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
         env:
           BAZELISK_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # For branch protection settings, this job provides a "stable" name that can be used to gate PR merges
   # on "all matrix jobs were successful".
   conclusion:
-    needs: [define-matrix, test]
+    needs: [define-matrix, init-smoke, test]
     runs-on: ubuntu-latest
     if: always()
     steps:

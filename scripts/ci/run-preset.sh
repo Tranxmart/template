@@ -12,12 +12,25 @@ langs_json="$2"
 features_args_raw="${3:-}"
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-for required_bin in copier git bazel direnv; do
+for required_bin in copier git bazel; do
   if ! command -v "${required_bin}" >/dev/null 2>&1; then
     echo "Missing required tool '${required_bin}'. Run in devbox or install dependencies first." >&2
     exit 1
   fi
 done
+
+# When executed under `devbox run`, toolchain env vars from Nix can leak into
+# downstream Ruby/OpenSSL builds and hide system headers (for example yaml.h).
+# Keep PATH-provided tools, but scrub compiler/linker overrides.
+for nix_var in ${!NIX_@}; do
+  unset "${nix_var}"
+done
+unset IN_NIX_SHELL
+unset CC CXX LD AR AS NM OBJCOPY OBJDUMP RANLIB READELF SIZE STRINGS STRIP
+unset CONFIG_SHELL SOURCE_DATE_EPOCH
+# Prefer system toolchain binaries (gcc, ld, etc.) over Nix wrappers while
+# still keeping Devbox-provided tools (copier/bazel/direnv) later in PATH.
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH}"
 
 tmp_project="$(mktemp -d "/tmp/test_project_${preset_name}.XXXXXX")"
 cleanup() {
@@ -63,10 +76,10 @@ if grep -rn '{%\|{%-' . --include='*.bazel' --include='*.bzl' --include='*.bazel
   exit 1
 fi
 
-echo "=== [${preset_name}] setup direnv and bazel env ==="
-direnv allow .
-eval "$(direnv export bash)"
-bazel run //tools:bazel_env >/dev/null
+echo "=== [${preset_name}] setup bazel env ==="
+export PATH="${tmp_project}/bazel-out/bazel_env-opt/bin/tools/bazel_env/bin:${PATH}"
+bazel run //tools:bazel_env
+export ORION_EXTENSIONS_DIR="${tmp_project}/.aspect/gazelle/"
 
 echo "=== [${preset_name}] format and idempotency ==="
 format
