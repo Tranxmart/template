@@ -1,101 +1,103 @@
 # AGENTS.md
 
-## 1) 项目定位（先理解这个再动手）
+## 1) Project Context (understand this first)
 
-这是一个 **Copier 模板仓库**，用于生成基于 Bazel + Aspect Workflows 的多语言 monorepo。  
-你在这里改的多数文件不是“业务代码”，而是“未来新仓库的脚手架模板”。
+This is a **Copier template repository** used to generate a multi-language monorepo based on Bazel and Aspect Workflows.
+Most files here are not product code; they are scaffolding templates for future repositories.
 
-- 模板入口说明：`README.md`
-- 核心模板配置：`copier.yml`
-- 生成模板文件目录：`template/`
-- 初始化/更新任务封装：`init.axl`、`update.axl`
-- 使用示例与用户故事：`user_stories/`
-
----
-
-## 2) 目录速读（高频）
-
-- `copier.yml`  
-  定义 Copier 问题项、默认值、条件排除（`_exclude`）和后置任务（`_tasks`）。
-
-- `template/`  
-  真正会被复制到目标项目的文件。
-  - `*.jinja`：Jinja 模板，生成时会去掉 `.jinja` 后缀。
-  - 非 `.jinja` 文件：按原样复制。
-
-- `template/README.bazel.md.jinja`  
-  生成后项目的开发者指南模板，通常是开发命令和工作流的权威说明。
-
-- `init.axl`  
-  对 `copier copy --trust` 的封装，会尝试 `copier` / `pipx run copier` / `uvx copier`。
-
-- `update.axl`  
-  对 `copier update --trust` 的封装，要求当前目录存在 `.copier-answers.yml`。
+- Template overview: `README.md`
+- Core Copier config: `copier.yml`
+- Generated file templates: `template/`
+- Init and update task wrappers: `init.axl`, `update.axl`
+- Usage examples and stories: `user_stories/`
 
 ---
 
-## 3) 关键工作流（AI 改动时必须遵守）
+## 2) Directory Quick Guide (high-frequency paths)
 
-1. **先判断改动层级**  
-   - 改“模板行为” → 改 `copier.yml`、`template/`、`init.axl`、`update.axl`
-   - 改“仓库文档” → 改根目录 `README.md`/`user_stories/` 等
+- `copier.yml`
+  Defines Copier prompts, defaults, conditional exclusions (`_exclude`), and post-generation tasks (`_tasks`).
 
-2. **涉及新文件或语言能力时，联动检查**
-   - `copier.yml` 的 `_exclude` 是否需要新增条件分支
-   - `template/` 是否新增对应模板文件
-   - `README.md` / `template/README.bazel.md.jinja` 是否要补说明
+- `template/`
+  Contains files copied into generated projects.
+  - `*.jinja`: processed by Jinja, then `.jinja` suffix is removed.
+  - Non-`.jinja` files: copied as-is.
 
-3. **保持模板可渲染**
-   - 不要破坏 Jinja 语法（`{% ... %}`、`{{ ... }}`）
-   - 变更条件分支时，确保“启用/禁用某语言”两条路径都可工作
+- `template/README.bazel.md.jinja`
+  Template for the generated project's developer guide and workflow commands.
 
-4. **避免把“生成产物思维”带进模板仓库**
-   - 在这里看到的 `template/*` 是“源模板”，不是最终项目文件
-   - 修改时优先考虑“生成后用户体验”而非当前仓库运行效果
+- `init.axl`
+  Wrapper around `copier copy --trust`; attempts `copier`, `pipx run copier`, or `uvx copier`.
+
+- `update.axl`
+  Wrapper around `copier update --trust`; requires `.copier-answers.yml` in the current directory.
 
 ---
 
-## 4) 常用命令（针对本仓库）
+## 3) Required Workflow for AI Changes
 
-- 安装/进入开发环境
+1. **Identify the change layer first**
+   - Template behavior changes -> edit `copier.yml`, `template/`, `init.axl`, `update.axl`
+   - Repository docs changes -> edit `README.md`, `user_stories/`, and related docs
+
+2. **When adding files or language capabilities, check linked areas**
+   - Update conditional logic in `copier.yml` `_exclude`
+   - Add or update matching files in `template/`
+   - Reflect changes in `README.md` and/or `template/README.bazel.md.jinja`
+
+3. **Keep templates render-safe**
+   - Do not break Jinja syntax (`{% ... %}`, `{{ ... }}`)
+   - Ensure both enabled/disabled language branches remain valid
+
+4. **Do not treat this as a generated repo**
+   - `template/*` files are source templates, not final outputs
+   - Optimize for generated-project developer experience
+
+---
+
+## 4) Common Commands (for this repository)
+
+- Enter development environment
   - `devbox shell`
 
-- 本地验证模板可复制（示例）
+- Validate template generation locally (example)
   - `copier copy --trust --skip-tasks --defaults . /tmp/test_project`
 
-- 生成后项目常见下一步（来自模板引导）
+- Common next steps in generated repos
   - `bazel run //tools:bazel_env`
   - `bazel test //...`
   - `bazel run gazelle`
 
 ---
 
-## 5) AI 修改建议（高价值）
+## 5) AI Editing Guidance
 
-- 优先做“小步可验证”改动：一次只做一个主题（如只改语言开关、只改文档、只改工具链）。
-- 改 `copier.yml` 时，重点审查：
-  - `langs` 多选项与布尔派生字段是否一致
-  - `_exclude` 条件是否覆盖新增能力
-  - `_tasks` 是否会在未启用语言时误执行
-- 改 `template/tools/BUILD.jinja`、`template/BUILD.jinja` 时，优先检查条件 load 与 rule 的配对关系，避免出现“未启用语言却引用规则”的渲染后错误。
-
----
-
-## 6) 最小验证清单（提交前）
-
-- 文档改动：
-  - 结构完整、术语与仓库现状一致
-
-- 模板逻辑改动：
-  - 至少执行一次 `copier copy` 到临时目录
-  - 检查生成结果是否包含/排除了预期文件
-
-- 脚本改动（`*.axl`）：
-  - 验证找不到依赖时的报错可读
-  - 验证成功路径命令参数正确（如 `--trust`、`--defaults`、`--skip-tasks`）
+- Prefer small, testable changes (one theme per change).
+- When editing `copier.yml`, verify:
+  - language multiselect options and derived booleans stay consistent
+  - `_exclude` conditions cover new capabilities
+  - `_tasks` do not run language-specific commands when disabled
+- When editing `template/tools/BUILD.jinja` or `template/BUILD.jinja`, verify conditional `load()` and rule usage are aligned to avoid rendered errors.
 
 ---
 
-## 7) 快速心智模型（一句话）
+## 6) Minimal Validation Checklist (before commit)
 
-把这个仓库当成“会生成项目的编译器前端”：`copier.yml` 是配置与条件逻辑，`template/` 是输出模板源码，`init.axl`/`update.axl` 是执行入口。
+- Docs-only changes:
+  - structure is complete
+  - terminology matches current repository behavior
+
+- Template logic changes:
+  - run at least one `copier copy` to a temp directory
+  - verify expected files are included/excluded
+
+- Script changes (`*.axl`):
+  - error messages are clear when dependencies are missing
+  - success path arguments are correct (`--trust`, `--defaults`, `--skip-tasks`)
+
+---
+
+## 7) One-line Mental Model
+
+Treat this repository like the front-end of a project generator:
+`copier.yml` defines conditions and config, `template/` defines output sources, and `init.axl`/`update.axl` are execution entry points.
