@@ -50,9 +50,6 @@ def _impl(ctx):
     if ctx.args.skip_tasks:
         copier_args.append("--skip-tasks")
 
-    if ctx.args.vcs_ref:
-        copier_args.extend(["--vcs-ref", ctx.args.vcs_ref])
-
     _log(ctx, "Running: {} {}".format(copier_bin, " ".join(copier_args)))
 
     cmd = ctx.std.process.command(copier_bin)
@@ -77,6 +74,5 @@ update = task(
     args = {
         "defaults": args.string(required = False),
         "skip_tasks": args.string(required = False),
-        "vcs_ref": args.string(required = False),
     },
 )

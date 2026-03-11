@@ -1,6 +1,6 @@
 "init.axl - Provide a wizard to generate a new Bazel project using copier"
 
-TEMPLATE_URL = "https://github.com/bazel-starters/template"
+TEMPLATE_URL = "https://github.com/tranxmart/template"
 
 def _log(ctx, message):
     if ctx.std.env.var("VERBOSE"):
@@ -32,19 +32,13 @@ def _impl(ctx):
     """Implementation of init task."""
     copier_bin, copier_prefix = _find_copier(ctx)
 
-    template_url = ctx.args.template_url if ctx.args.template_url else TEMPLATE_URL
+    template_url = TEMPLATE_URL
 
     copier_args = copier_prefix + ["copy", "--trust"]
 
-    if ctx.args.vcs_ref:
-        copier_args.extend(["--vcs-ref", ctx.args.vcs_ref])
-
     copier_args.append(template_url)
 
-    if ctx.args.output_dir:
-        copier_args.append(ctx.args.output_dir)
-    else:
-        fail("output_dir is required. Usage: aspect init --output_dir <path>")
+    copier_args.append(ctx.args.output_dir if ctx.args.output_dir else ".")
 
     _log(ctx, "Running: {} {}".format(copier_bin, " ".join(copier_args)))
 
@@ -68,8 +62,6 @@ init = task(
     description = "Initialize a new Bazel project using the Aspect Workflows Template",
     implementation = _impl,
     args = {
-        "output_dir": args.string(required = False),
-        "template_url": args.string(required = False),
-        "vcs_ref": args.string(required = False),
+        "output_dir": args.string(required = False)
     },
 )
