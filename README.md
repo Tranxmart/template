@@ -124,6 +124,9 @@ LOCAL_CI_PRESETS="minimal js py" git push
 SKIP_LOCAL_CI=1 git push
 ```
 
+Preset definitions are centralized in `scripts/ci/presets.json` and consumed by both
+GitHub Actions matrix generation and `./scripts/ci/run-local.sh`.
+
 ## Template Structure
 
 ```
