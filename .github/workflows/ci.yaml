@@ -54,29 +54,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
         with:
-          python-version: "3.12"
-
-      - name: Install copier
-        run: pip install copier
-
-      - name: Install Bazel
-        uses: bazel-contrib/setup-bazel@0.18.0
-        with:
-          bazelisk-cache: true
-          repository-cache: true
-          bazelrc: |
-            common --announce_rc --color=yes --curses=yes
-            common --show_progress_rate_limit=60 --show_timestamps
-
-      - name: Install direnv
-        run: |
-          sudo apt-get install -y direnv
-          eval "$(direnv hook bash)"
+          enable-cache: true
 
       - name: Run preset validation
-        run: ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
+        run: devbox run -- ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
+        env:
+          BAZELISK_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # For branch protection settings, this job provides a "stable" name that can be used to gate PR merges
   # on "all matrix jobs were successful".
