@@ -75,85 +75,8 @@ jobs:
           sudo apt-get install -y direnv
           eval "$(direnv hook bash)"
 
-      - name: Generate project
-        id: generate
-        run: |
-          copier copy --trust --skip-tasks --defaults \
-            --data project_name=test_${{ matrix.preset.name }} \
-            --data 'langs=${{ matrix.preset.langs }}' \
-            ${{ matrix.preset.features }} \
-            . /tmp/test_project
-          cd /tmp/test_project
-          git init
-          git add .
-          git config user.email "noreply@aspect.build"
-          git config user.name "No One"
-          git commit -a -m "initial commit"
-          echo "dir=$PWD" >> $GITHUB_OUTPUT
-
-      - name: Verify generated files
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          echo "Generated files:"
-          find . -type f | sort
-          echo ""
-          echo "Checking required files exist..."
-          test -f MODULE.bazel
-          test -f .bazelrc
-          test -f BUILD
-          test -f REPO.bazel
-          test -f .bazelversion
-          test -f .envrc
-          test -f devbox.json
-          echo "All required files present."
-
-      - name: Check no Jinja2 artifacts remain
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          if grep -rn '{%\|{%-' . --include='*.bazel' --include='*.bzl' --include='*.bazelrc' --include='BUILD' 2>/dev/null; then
-            echo "ERROR: Jinja2 block artifacts found in generated files"
-            exit 1
-          fi
-          echo "No template artifacts found."
-
-      - name: Setup direnv
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          direnv allow .
-          eval "$(direnv export bash)"
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          echo "ORION_EXTENSIONS_DIR=$ORION_EXTENSIONS_DIR" >> $GITHUB_ENV
-          bazel run //tools:bazel_env
-
-      - run: format
-        working-directory: "${{ steps.generate.outputs.dir }}"
-
-      - name: commit format changes
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: git add -A && git diff --cached --quiet || git commit -m "apply format"
-
-      - run: format
-        working-directory: "${{ steps.generate.outputs.dir }}"
-
-      - name: format is idempotent
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: git diff --exit-code
-
-      - name: User Stories
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        shell: sh
-        run: $GITHUB_WORKSPACE/user_stories/${{ matrix.preset.name }}.md || exit 1
-
-      - name: Python test that fails
-        continue-on-error: true
-        run: bazel test //app:app_test
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        if: "${{ matrix.preset.name == 'py' }}"
-
-      - name: Check failure is expected
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        if: "${{ matrix.preset.name == 'py' }}"
-        run: grep "FAILED app/app_test.py::test_bad - assert 1 == 2" $(bazel info bazel-testlogs)/app/app_test/test.log
+      - name: Run preset validation
+        run: ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
 
   # For branch protection settings, this job provides a "stable" name that can be used to gate PR merges
   # on "all matrix jobs were successful".

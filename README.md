@@ -96,6 +96,34 @@ copier copy --trust --skip-tasks --defaults \
   . /tmp/test_project
 ```
 
+### Validate CI locally before push
+
+Use the same preset validation logic as GitHub Actions:
+
+```sh
+# Run one preset
+./scripts/ci/run-local.sh js
+
+# Run full CI matrix locally
+./scripts/ci/run-local.sh
+```
+
+Install the pre-push hook so pushes are blocked until local CI passes:
+
+```sh
+git config core.hooksPath githooks
+```
+
+Optional:
+
+```sh
+# Run only selected presets in pre-push
+LOCAL_CI_PRESETS="minimal js py" git push
+
+# Skip local CI hook once (for emergencies only)
+SKIP_LOCAL_CI=1 git push
+```
+
 ## Template Structure
 
 ```

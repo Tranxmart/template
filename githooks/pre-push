@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${SKIP_LOCAL_CI:-0}" = "1" ]; then
+  echo "Skipping local CI pre-push hook because SKIP_LOCAL_CI=1."
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+runner="${repo_root}/scripts/ci/run-local.sh"
+
+if [ ! -x "${runner}" ]; then
+  echo "Missing executable ${runner}" >&2
+  exit 1
+fi
+
+if [ -n "${LOCAL_CI_PRESETS:-}" ]; then
+  # shellcheck disable=SC2206
+  presets=( ${LOCAL_CI_PRESETS} )
+  echo "Running local CI presets from LOCAL_CI_PRESETS: ${LOCAL_CI_PRESETS}"
+  "${runner}" "${presets[@]}"
+else
+  echo "Running full local CI matrix before push."
+  "${runner}"
+fi
