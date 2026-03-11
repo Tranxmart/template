@@ -1,0 +1,75 @@
+"init.axl - Provide a wizard to generate a new Bazel project using copier"
+
+TEMPLATE_URL = "https://github.com/bazel-starters/template"
+
+def _log(ctx, message):
+    if ctx.std.env.var("VERBOSE"):
+        ctx.std.io.stderr.write(message + "\n")
+
+def _find_copier(ctx):
+    """Try copier, pipx run copier, and uvx copier in order."""
+    candidates = [
+        ("copier", []),
+        ("pipx", ["run", "copier"]),
+        ("uvx", ["copier"]),
+    ]
+    for bin, prefix in candidates:
+        child = ctx.std.process.command(bin).args(prefix + ["--version"]).stdout("piped").stderr("piped").spawn()
+        child.stdout().read_to_string()
+        status = child.wait()
+        if status:
+            _log(ctx, "Found copier via: {} {}".format(bin, " ".join(prefix)))
+            return (bin, prefix)
+
+    fail(
+        "copier not found. Install with one of:\n"
+        + "  pip install copier\n"
+        + "  pipx install copier\n"
+        + "  devbox shell  (if devbox.json includes copier)",
+    )
+
+def _impl(ctx):
+    """Implementation of init task."""
+    copier_bin, copier_prefix = _find_copier(ctx)
+
+    template_url = ctx.args.template_url if ctx.args.template_url else TEMPLATE_URL
+
+    copier_args = copier_prefix + ["copy", "--trust"]
+
+    if ctx.args.vcs_ref:
+        copier_args.extend(["--vcs-ref", ctx.args.vcs_ref])
+
+    copier_args.append(template_url)
+
+    if ctx.args.output_dir:
+        copier_args.append(ctx.args.output_dir)
+    else:
+        fail("output_dir is required. Usage: aspect init --output_dir <path>")
+
+    _log(ctx, "Running: {} {}".format(copier_bin, " ".join(copier_args)))
+
+    cmd = ctx.std.process.command(copier_bin)
+    cmd.args(copier_args)
+    cmd.stdin("inherit")
+    cmd.stdout("inherit")
+    cmd.stderr("inherit")
+
+    child = cmd.spawn()
+    status = child.wait()
+
+    if not status:
+        fail("copier copy failed with exit code: {}".format(status.code()))
+
+    _log(ctx, "Project initialized successfully!")
+    return 0
+
+init = task(
+    name = "init",
+    description = "Initialize a new Bazel project using the Aspect Workflows Template",
+    implementation = _impl,
+    args = {
+        "output_dir": args.string(required = False),
+        "template_url": args.string(required = False),
+        "vcs_ref": args.string(required = False),
+    },
+)

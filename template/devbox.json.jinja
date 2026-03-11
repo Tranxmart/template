@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.0/.schema/devbox.schema.json",
+  "packages": [
+    "bazelisk@latest",
+    "direnv@latest"{% if javascript %},
+    "nodejs@22",
+    "pnpm@latest"{% endif %}{% if python %},
+    "python@3.12"{% endif %}{% if go %},
+    "go@latest"{% endif %}{% if ruby %},
+    "ruby@latest"{% endif %}{% if rust %},
+    "rustup@latest"{% endif %}{% if java or kotlin or scala %},
+    "jdk@21"{% endif %}{% if cpp %},
+    "clang@latest"{% endif %}
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
+    ],
+    "scripts": {
+      "test": [
+        "bazel test //..."
+      ]
+    }
+  }
+}

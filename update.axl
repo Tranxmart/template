@@ -1,0 +1,82 @@
+"update.axl - Update an existing project from the Aspect Workflows Template"
+
+def _log(ctx, message):
+    if ctx.std.env.var("VERBOSE"):
+        ctx.std.io.stderr.write(message + "\n")
+
+def _find_copier(ctx):
+    """Try copier, pipx run copier, and uvx copier in order."""
+    candidates = [
+        ("copier", []),
+        ("pipx", ["run", "copier"]),
+        ("uvx", ["copier"]),
+    ]
+    for bin, prefix in candidates:
+        child = ctx.std.process.command(bin).args(prefix + ["--version"]).stdout("piped").stderr("piped").spawn()
+        child.stdout().read_to_string()
+        status = child.wait()
+        if status:
+            _log(ctx, "Found copier via: {} {}".format(bin, " ".join(prefix)))
+            return (bin, prefix)
+
+    fail(
+        "copier not found. Install with one of:\n"
+        + "  pip install copier\n"
+        + "  pipx install copier\n"
+        + "  devbox shell  (if devbox.json includes copier)",
+    )
+
+def _check_copier_answers(ctx):
+    """Verify that the project was previously created with copier."""
+    answers_file = ".copier-answers.yml"
+    if not ctx.std.fs.exists(answers_file):
+        fail(
+            "No .copier-answers.yml found in the current directory.\n"
+            + "This command must be run from a project previously created with 'aspect init'.\n"
+            + "If you want to create a new project, use 'aspect init --output_dir <path>' instead.",
+        )
+
+def _impl(ctx):
+    """Implementation of update task."""
+    copier_bin, copier_prefix = _find_copier(ctx)
+
+    _check_copier_answers(ctx)
+
+    copier_args = copier_prefix + ["update", "--trust"]
+
+    if ctx.args.defaults:
+        copier_args.append("--defaults")
+
+    if ctx.args.skip_tasks:
+        copier_args.append("--skip-tasks")
+
+    if ctx.args.vcs_ref:
+        copier_args.extend(["--vcs-ref", ctx.args.vcs_ref])
+
+    _log(ctx, "Running: {} {}".format(copier_bin, " ".join(copier_args)))
+
+    cmd = ctx.std.process.command(copier_bin)
+    cmd.args(copier_args)
+    cmd.stdin("inherit")
+    cmd.stdout("inherit")
+    cmd.stderr("inherit")
+
+    child = cmd.spawn()
+    status = child.wait()
+
+    if not status:
+        fail("copier update failed with exit code: {}".format(status.code()))
+
+    _log(ctx, "Project updated successfully!")
+    return 0
+
+update = task(
+    name = "update",
+    description = "Update the current project from the latest Aspect Workflows Template",
+    implementation = _impl,
+    args = {
+        "defaults": args.string(required = False),
+        "skip_tasks": args.string(required = False),
+        "vcs_ref": args.string(required = False),
+    },
+)

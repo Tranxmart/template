@@ -1,0 +1,201 @@
+_subdirectory: template
+_templates_suffix: .jinja
+_min_copier_version: "9.2.0"
+
+_message_before_copy: |
+  ╔══════════════════════════════════════════════════════════════╗
+  ║          Aspect — Multi-language Monorepo Platform          ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  Generate a new Bazel project with Aspect CLI and Aspect Workflows.
+  Includes devbox + direnv for reproducible dev environments.
+
+_message_after_copy: |
+  ✅ Project created successfully!
+
+  Next steps:
+
+    1. cd into your project directory
+    2. Run `devbox shell` to enter the development environment
+    3. Run `bazel run //tools:bazel_env` to set up Bazel-managed tools
+    4. Read the developer guide in `README.bazel.md`
+
+  Useful commands:
+    • `bazel test //...`          — Run all tests
+    • `bazel run gazelle`         — Regenerate BUILD files
+    • `ibazel run //my:devserver` — Watch mode
+
+_exclude:
+  # Lint (language-specific config files)
+  - "{% if not javascript %}prettier.config.cjs{% endif %}"
+  - "{% if not javascript %}eslint.config.mjs{% endif %}"
+  - "{% if not shell %}.shellcheckrc{% endif %}"
+  - "{% if not ruby %}.rubocop.yml{% endif %}"
+  - "{% if not java %}pmd.xml{% endif %}"
+  # JavaScript
+  - "{% if not javascript %}package.json{% endif %}"
+  - "{% if not javascript %}pnpm-lock.yaml{% endif %}"
+  - "{% if not javascript %}pnpm-workspace.yaml{% endif %}"
+  - "{% if not javascript %}.npmrc{% endif %}"
+  - "{% if not javascript %}.nvmrc{% endif %}"
+  - "{% if not javascript %}.aspect/gazelle/package-json-scripts.axl{% endif %}"
+  - "{% if not javascript %}tools/package.json{% endif %}"
+  # Python
+  - "{% if not python %}requirements{% endif %}"
+  - "{% if not python %}pyproject.toml{% endif %}"
+  - "{% if not python %}gazelle_python.yaml{% endif %}"
+  - "{% if not python %}tools/pytest{% endif %}"
+  # Go
+  - "{% if not go %}go.mod{% endif %}"
+  - "{% if not go %}go.sum{% endif %}"
+  # Kotlin
+  - "{% if not kotlin %}ktlint-baseline.xml{% endif %}"
+  - "{% if not kotlin %}.editorconfig{% endif %}"
+  # Ruby
+  - "{% if not ruby %}Gemfile{% endif %}"
+  - "{% if not ruby %}Gemfile.lock{% endif %}"
+  - "{% if not ruby %}.ruby-version{% endif %}"
+  # Java
+  - "{% if not java %}maven_install.json{% endif %}"
+  - "{% if not java %}tools/java17.bazelrc{% endif %}"
+  # C++
+  - "{% if not cpp %}.clang-tidy{% endif %}"
+  # Rust
+  - "{% if not rust %}Cargo.lock{% endif %}"
+  - "{% if not rust %}Cargo.toml{% endif %}"
+  - "{% if not rust %}.clippy.toml{% endif %}"
+  # OCI
+  - "{% if not oci %}tools/oci/BUILD{% endif %}"
+  - "{% if not oci %}tools/platforms{% endif %}"
+  - "{% if not (oci and python) %}.aspect/gazelle/py3_image.axl{% endif %}"
+  - "{% if not (oci and python) %}tools/oci/py3_image.bzl{% endif %}"
+  - "{% if not (oci and go) %}.aspect/gazelle/go_image.axl{% endif %}"
+  - "{% if not (oci and go) %}tools/oci/go_image.bzl{% endif %}"
+  # Shell
+  - "{% if not shell %}.aspect/gazelle/shell.axl{% endif %}"
+
+# ─── Project Info ─────────────────────────────────────────────
+
+project_name:
+  type: str
+  help: "Project name (lowercase with underscores, e.g. my_project):"
+
+project_kebab:
+  type: str
+  default: "{{ project_name | lower | replace('_', '-') | replace(' ', '-') }}"
+  when: false
+
+# ─── Languages ────────────────────────────────────────────────
+
+langs:
+  type: str
+  help: "Languages to include in the project:"
+  multiselect: true
+  default: []
+  choices:
+    JavaScript & TypeScript: javascript
+    Python: python
+    Go: go
+    Java: java
+    Scala: scala
+    Kotlin: kotlin
+    C & C++: cpp
+    Rust: rust
+    Ruby: ruby
+    Shell (Bash): shell
+
+# Computed booleans from langs selection
+javascript:
+  type: bool
+  default: "{{ 'javascript' in langs }}"
+  when: false
+
+python:
+  type: bool
+  default: "{{ 'python' in langs }}"
+  when: false
+
+go:
+  type: bool
+  default: "{{ 'go' in langs }}"
+  when: false
+
+java:
+  type: bool
+  default: "{{ 'java' in langs }}"
+  when: false
+
+scala:
+  type: bool
+  default: "{{ 'scala' in langs }}"
+  when: false
+
+kotlin:
+  type: bool
+  default: "{{ 'kotlin' in langs }}"
+  when: false
+
+cpp:
+  type: bool
+  default: "{{ 'cpp' in langs }}"
+  when: false
+
+rust:
+  type: bool
+  default: "{{ 'rust' in langs }}"
+  when: false
+
+ruby:
+  type: bool
+  default: "{{ 'ruby' in langs }}"
+  when: false
+
+shell:
+  type: bool
+  default: "{{ 'shell' in langs }}"
+  when: false
+
+# ─── Features ─────────────────────────────────────────────────
+
+codegen:
+  type: bool
+  default: false
+  when: false
+
+lint:
+  type: bool
+  default: true
+  when: false
+
+proto:
+  type: bool
+  default: false
+  help: "Setup Protobuf and gRPC?"
+
+stamp:
+  type: bool
+  default: true
+  when: false
+
+oci:
+  type: bool
+  default: false
+  help: "Setup OCI container builds? (rules_oci)"
+
+# ─── Computed ─────────────────────────────────────────────────
+
+platforms:
+  type: bool
+  default: "{{ oci }}"
+  when: false
+
+# ─── Post-generation Tasks ────────────────────────────────────
+
+_tasks:
+  - command: "bazel run --run_under='cd $PWD &&' -- @buildifier_prebuilt//:buildifier -r . || true"
+  - command: "bazel run //tools/format || true"
+    when: "{{ lint }}"
+  - command: "./tools/repin || true"
+  - command: "bazel run @pnpm -- --dir=$PWD install --lockfile-only || true"
+    when: "{{ javascript }}"
+  - command: "bazel mod deps --lockfile_mode=update || true"

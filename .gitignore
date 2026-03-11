@@ -1,0 +1,31 @@
+# Devbox
+.devbox/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# direnv
+.direnv/
+
+# Environment variables (may contain secrets)
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Copier generated answers (in downstream projects)
+.copier-answers.yml
+
+# Node (if present during template development)
+node_modules/

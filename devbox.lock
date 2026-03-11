@@ -1,0 +1,169 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "bazelisk@latest": {
+      "last_modified": "2026-02-23T15:40:43Z",
+      "resolved": "github:NixOS/nixpkgs/80d901ec0377e19ac3f7bb8c035201e2e098cc97#bazelisk",
+      "source": "devbox-search",
+      "version": "1.28.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ira8vz7kbiz7x67ahzzgzd87adj7qg20-bazelisk-1.28.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ira8vz7kbiz7x67ahzzgzd87adj7qg20-bazelisk-1.28.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/i98i9jkil8nibqv5pfaf82yqyx7gqv5r-bazelisk-1.28.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/i98i9jkil8nibqv5pfaf82yqyx7gqv5r-bazelisk-1.28.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/1ryvzkirrzqw45cv7pzmchnzmdibbmma-bazelisk-1.28.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/1ryvzkirrzqw45cv7pzmchnzmdibbmma-bazelisk-1.28.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/fsw8mdilddm96ksmqs9zh1sys5iwbdmm-bazelisk-1.28.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/fsw8mdilddm96ksmqs9zh1sys5iwbdmm-bazelisk-1.28.1"
+        }
+      }
+    },
+    "copier@latest": {
+      "last_modified": "2026-03-01T09:58:01Z",
+      "resolved": "github:NixOS/nixpkgs/42bbf3e1e000963f4f3f37daa822c67c4d8856c4#copier",
+      "source": "devbox-search",
+      "version": "9.11.3",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ivz2mfcn9jpy7gk2cblbjyv23icixmvs-python3.13-copier-9.11.3",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/gd43gz9hw63rs6vs6356spa1nsbf19ff-python3.13-copier-9.11.3-dist"
+            }
+          ],
+          "store_path": "/nix/store/ivz2mfcn9jpy7gk2cblbjyv23icixmvs-python3.13-copier-9.11.3"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/px4a7wz301pv0k05r90kfaxyld0sdn2b-python3.13-copier-9.11.3",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/ckynd5dmdw3h5lklh7x9p74mkd19ivq5-python3.13-copier-9.11.3-dist"
+            }
+          ],
+          "store_path": "/nix/store/px4a7wz301pv0k05r90kfaxyld0sdn2b-python3.13-copier-9.11.3"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cjwzq0zkswzg4d6ny6lyajmhz4dzx1xq-python3.13-copier-9.11.3",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/5zrryszbwrqsp23mhs3ap52sb69df1dr-python3.13-copier-9.11.3-dist"
+            }
+          ],
+          "store_path": "/nix/store/cjwzq0zkswzg4d6ny6lyajmhz4dzx1xq-python3.13-copier-9.11.3"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/7k7i6l8s48ndh9p2vl4da4ifpph094kx-python3.13-copier-9.11.3",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/361i4b0lx8cy3s69q0wdw51aad0cz0zv-python3.13-copier-9.11.3-dist"
+            }
+          ],
+          "store_path": "/nix/store/7k7i6l8s48ndh9p2vl4da4ifpph094kx-python3.13-copier-9.11.3"
+        }
+      }
+    },
+    "direnv@latest": {
+      "last_modified": "2026-02-23T15:40:43Z",
+      "resolved": "github:NixOS/nixpkgs/80d901ec0377e19ac3f7bb8c035201e2e098cc97#direnv",
+      "source": "devbox-search",
+      "version": "2.37.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z4vvjsrdrg65jfkh0nbz5d47cml8rgmh-direnv-2.37.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/z4vvjsrdrg65jfkh0nbz5d47cml8rgmh-direnv-2.37.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2ksrc6nc7c4yavq3hl0g97i0w7368xnb-direnv-2.37.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2ksrc6nc7c4yavq3hl0g97i0w7368xnb-direnv-2.37.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/midrr14abk8gpyw049mq4z0zr1i0rmvv-direnv-2.37.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/midrr14abk8gpyw049mq4z0zr1i0rmvv-direnv-2.37.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/facg208fw2bgsg7w0f13k5iwkp8lnsi4-direnv-2.37.1",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/facg208fw2bgsg7w0f13k5iwkp8lnsi4-direnv-2.37.1"
+        }
+      }
+    },
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2026-03-08T08:02:12Z",
+      "resolved": "github:NixOS/nixpkgs/608d0cadfed240589a7eea422407a547ad626a14?lastModified=1772956932&narHash=sha256-M0yS4AafhKxPPmOHGqIV0iKxgNO8bHDWdl1kOwGBwRY%3D"
+    }
+  }
+}
