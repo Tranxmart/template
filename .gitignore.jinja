@@ -1,0 +1,19 @@
+# User-specific settings file for this repo. May contain secrets such as API tokens.
+user.bazelrc
+.env
+
+# Symlinks created by Bazel into the output tree
+/bazel-*
+
+# Devbox
+.devbox
+
+{% if javascript %}
+node_modules/
+{% endif %}
+{% if python %}
+*.venv/
+{% endif %}
+{% if ruby %}
+vendor/bundle/
+{% endif %}

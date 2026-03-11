@@ -1,0 +1,13 @@
+{
+    "recommendations": [
+      "BazelBuild.vscode-bazel",
+{% if python %}
+      "ms-python.python",
+      "charliermarsh.ruff",
+      "astral-sh.ty",
+{% endif %}
+{% if javascript %}
+      "esbenp.prettier-vscode",
+{% endif %}
+    ],
+}

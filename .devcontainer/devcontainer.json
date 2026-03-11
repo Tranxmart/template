@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Devbox + Bazel",
+  "image": "ghcr.io/jetify-com/devbox:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "jetify-com.devbox"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "DEVBOX_NO_PROMPT": "1"
+  },
+  "postCreateCommand": "devbox install && direnv allow && bazel run tools:bazel_env || true"
+}
