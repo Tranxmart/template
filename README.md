@@ -40,6 +40,12 @@ cd my_project
 copier update --trust
 ```
 
+When using `aspect init`, you can override the template source in CI/local tests:
+
+```sh
+ASPECT_TEMPLATE_URL=/path/to/local/template aspect init --output_dir my_project
+```
+
 ## Template Options
 
 ### Languages
@@ -95,6 +101,37 @@ copier copy --trust --skip-tasks --defaults \
   --data proto=false --data stamp=false --data oci=false \
   . /tmp/test_project
 ```
+
+### Validate CI locally before push
+
+Use the same preset validation logic as GitHub Actions:
+
+```sh
+# Run one preset
+./scripts/ci/run-local.sh js
+
+# Run full CI matrix locally
+./scripts/ci/run-local.sh
+```
+
+Install the pre-push hook so pushes are blocked until local CI passes:
+
+```sh
+git config core.hooksPath githooks
+```
+
+Optional:
+
+```sh
+# Run only selected presets in pre-push
+LOCAL_CI_PRESETS="minimal js py" git push
+
+# Skip local CI hook once (for emergencies only)
+SKIP_LOCAL_CI=1 git push
+```
+
+Preset definitions are centralized in `scripts/ci/presets.json` and consumed by both
+GitHub Actions matrix generation and `./scripts/ci/run-local.sh`.
 
 ## Template Structure
 

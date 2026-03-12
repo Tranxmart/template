@@ -81,8 +81,8 @@ bazel run //packages/hello
 We can use Yeoman to scaffold out a library and add its dependencies:
 
 ~~~sh
-pnpm add -w generator-bazel-fastify-route
-yo bazel-fastify-route
+pnpm add -w yo generator-bazel-fastify-route
+pnpm exec yo --version
 ~~~
 
 ## Linting

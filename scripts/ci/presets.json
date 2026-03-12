@@ -1,0 +1,64 @@
+{
+  "presets": [
+    {
+      "name": "minimal",
+      "langs": "[]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "js",
+      "langs": "[javascript]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "py",
+      "langs": "[python]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "go",
+      "langs": "[go]",
+      "features": "--data proto=false --data oci=true"
+    },
+    {
+      "name": "java",
+      "langs": "[java]",
+      "features": "--data proto=true --data oci=false"
+    },
+    {
+      "name": "kotlin",
+      "langs": "[kotlin]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "rust",
+      "langs": "[rust]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "ruby",
+      "langs": "[ruby]",
+      "features": "--data proto=true --data oci=false"
+    },
+    {
+      "name": "shell",
+      "langs": "[shell]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "kitchen-sink",
+      "langs": "[javascript, python, go, java, scala, kotlin, cpp, rust, ruby, shell]",
+      "features": "--data proto=false --data oci=true"
+    },
+    {
+      "name": "cpp",
+      "langs": "[cpp]",
+      "features": "--data proto=false --data oci=false"
+    },
+    {
+      "name": "scala",
+      "langs": "[scala]",
+      "features": "--data proto=false --data oci=false"
+    }
+  ]
+}

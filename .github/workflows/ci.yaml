@@ -7,158 +7,90 @@ on:
     branches: [master]
 
 jobs:
+  define-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      presets: ${{ steps.generate.outputs.presets }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Generate matrix from presets.json
+        id: generate
+        run: echo "presets=$(python3 ./scripts/ci/list-presets.py --format json-array)" >> "$GITHUB_OUTPUT"
+
+  init-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uuidgen dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y uuid-runtime
+
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
+        with:
+          enable-cache: true
+
+      - name: Expose devbox tools on PATH
+        run: |
+          copier_bin="$(devbox -q run -- which copier)"
+          echo "PATH=$(dirname "${copier_bin}"):${PATH}" >> "$GITHUB_ENV"
+
+      - name: Install Aspect CLI
+        run: curl -fsSL https://install.aspect.build | bash
+
+      - name: Run init task against local template
+        run: |
+          ASPECT_TEMPLATE_URL="$GITHUB_WORKSPACE" \
+            aspect init \
+            --output_dir /tmp/init_task_smoke \
+            --project_name ci_smoke \
+            --defaults true \
+            --skip_tasks true
+          test -f /tmp/init_task_smoke/MODULE.bazel
+          test -f /tmp/init_task_smoke/.bazelrc
+          test -f /tmp/init_task_smoke/BUILD
+
   test:
+    needs: define-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        preset:
-          - name: minimal
-            langs: "[]"
-            features: "--data proto=false --data oci=false"
-          - name: js
-            langs: "[javascript]"
-            features: "--data proto=false --data oci=false"
-          - name: py
-            langs: "[python]"
-            features: "--data proto=false --data oci=false"
-          - name: go
-            langs: "[go]"
-            features: "--data proto=false --data oci=true"
-          - name: java
-            langs: "[java]"
-            features: "--data proto=true --data oci=false"
-          - name: kotlin
-            langs: "[kotlin]"
-            features: "--data proto=false --data oci=false"
-          - name: rust
-            langs: "[rust]"
-            features: "--data proto=false --data oci=false"
-          - name: ruby
-            langs: "[ruby]"
-            features: "--data proto=true --data oci=false"
-          - name: shell
-            langs: "[shell]"
-            features: "--data proto=false --data oci=false"
-          - name: kitchen-sink
-            langs: "[javascript, python, go, java, scala, kotlin, cpp, rust, ruby, shell]"
-            features: "--data proto=false --data oci=true"
-          - name: cpp
-            langs: "[cpp]"
-            features: "--data proto=false --data oci=false"
-          - name: scala
-            langs: "[scala]"
-            features: "--data proto=false --data oci=false"
+        preset: ${{ fromJSON(needs.define-matrix.outputs.presets) }}
 
     name: "test (${{ matrix.preset.name }})"
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - name: Install ruby system dependencies
+        if: ${{ contains(matrix.preset.langs, 'ruby') }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libyaml-dev
+
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.14.0
         with:
-          python-version: "3.12"
+          enable-cache: true
 
-      - name: Install copier
-        run: pip install copier
-
-      - name: Install Bazel
-        uses: bazel-contrib/setup-bazel@0.18.0
-        with:
-          bazelisk-cache: true
-          repository-cache: true
-          bazelrc: |
-            common --announce_rc --color=yes --curses=yes
-            common --show_progress_rate_limit=60 --show_timestamps
-
-      - name: Install direnv
+      - name: Expose devbox tools on PATH
         run: |
-          sudo apt-get install -y direnv
-          eval "$(direnv hook bash)"
+          copier_bin="$(devbox -q run -- which copier)"
+          bazel_bin="$(devbox -q run -- which bazel)"
+          tool_path="$(dirname "${copier_bin}"):$(dirname "${bazel_bin}")"
+          echo "PATH=${tool_path}:${PATH}" >> "$GITHUB_ENV"
 
-      - name: Generate project
-        id: generate
-        run: |
-          copier copy --trust --skip-tasks --defaults \
-            --data project_name=test_${{ matrix.preset.name }} \
-            --data 'langs=${{ matrix.preset.langs }}' \
-            ${{ matrix.preset.features }} \
-            . /tmp/test_project
-          cd /tmp/test_project
-          git init
-          git add .
-          git config user.email "noreply@aspect.build"
-          git config user.name "No One"
-          git commit -a -m "initial commit"
-          echo "dir=$PWD" >> $GITHUB_OUTPUT
-
-      - name: Verify generated files
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          echo "Generated files:"
-          find . -type f | sort
-          echo ""
-          echo "Checking required files exist..."
-          test -f MODULE.bazel
-          test -f .bazelrc
-          test -f BUILD
-          test -f REPO.bazel
-          test -f .bazelversion
-          test -f .envrc
-          test -f devbox.json
-          echo "All required files present."
-
-      - name: Check no Jinja2 artifacts remain
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          if grep -rn '{%\|{%-' . --include='*.bazel' --include='*.bzl' --include='*.bazelrc' --include='BUILD' 2>/dev/null; then
-            echo "ERROR: Jinja2 block artifacts found in generated files"
-            exit 1
-          fi
-          echo "No template artifacts found."
-
-      - name: Setup direnv
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: |
-          direnv allow .
-          eval "$(direnv export bash)"
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          echo "ORION_EXTENSIONS_DIR=$ORION_EXTENSIONS_DIR" >> $GITHUB_ENV
-          bazel run //tools:bazel_env
-
-      - run: format
-        working-directory: "${{ steps.generate.outputs.dir }}"
-
-      - name: commit format changes
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: git add -A && git diff --cached --quiet || git commit -m "apply format"
-
-      - run: format
-        working-directory: "${{ steps.generate.outputs.dir }}"
-
-      - name: format is idempotent
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        run: git diff --exit-code
-
-      - name: User Stories
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        shell: sh
-        run: $GITHUB_WORKSPACE/user_stories/${{ matrix.preset.name }}.md || exit 1
-
-      - name: Python test that fails
-        continue-on-error: true
-        run: bazel test //app:app_test
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        if: "${{ matrix.preset.name == 'py' }}"
-
-      - name: Check failure is expected
-        working-directory: "${{ steps.generate.outputs.dir }}"
-        if: "${{ matrix.preset.name == 'py' }}"
-        run: grep "FAILED app/app_test.py::test_bad - assert 1 == 2" $(bazel info bazel-testlogs)/app/app_test/test.log
+      - name: Run preset validation
+        run: ./scripts/ci/run-preset.sh "${{ matrix.preset.name }}" "${{ matrix.preset.langs }}" "${{ matrix.preset.features }}"
+        env:
+          BAZELISK_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # For branch protection settings, this job provides a "stable" name that can be used to gate PR merges
   # on "all matrix jobs were successful".
   conclusion:
-    needs: test
+    needs: [define-matrix, init-smoke, test]
     runs-on: ubuntu-latest
     if: always()
     steps:

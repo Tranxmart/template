@@ -61,7 +61,7 @@ sed -i 's/dependencies = \[/dependencies = ["requests",/' pyproject.toml
 Now we need to re-pin the dependencies to the lockfile:
 
 ~~~sh
-./tools/repin
+bash ./tools/repin
 ~~~
 
 Generate `BUILD` files:
@@ -100,7 +100,7 @@ We'll need to link its requirements file into the `requirements.all` collector a
 copier copy gh:alexeagle/aspect-template-python-lib mylib --vcs-ref HEAD
 buildozer "add data //mylib:requirements" //requirements:requirements.all
 echo "-r ../mylib/requirements.txt" >> requirements/all.in
-./tools/repin
+bash ./tools/repin
 ~~~
 
 Next, update the application we created earlier to use that library:
