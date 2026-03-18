@@ -44,8 +44,6 @@ def _impl(ctx):
     )
 
     copier_args = copier_prefix + ["copy", "--trust"]
-    if ctx.args.project_name:
-        copier_args.extend(["--data", "project_name={}".format(ctx.args.project_name)])
     if ctx.args.defaults:
         copier_args.append("--defaults")
     if ctx.args.skip_tasks:
@@ -79,7 +77,6 @@ init = task(
     args = {
         "output_dir": args.string(required = False),
         "template_url": args.string(required = False),
-        "project_name": args.string(required = False),
         "defaults": args.string(required = False),
         "skip_tasks": args.string(required = False),
     },

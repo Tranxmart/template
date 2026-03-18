@@ -74,17 +74,6 @@ _exclude:
   # Shell
   - "{% if not shell %}.aspect/gazelle/shell.axl{% endif %}"
 
-# ─── Project Info ─────────────────────────────────────────────
-
-project_name:
-  type: str
-  help: "Project name (lowercase with underscores, e.g. my_project):"
-
-project_kebab:
-  type: str
-  default: "{{ project_name | lower | replace('_', '-') | replace(' ', '-') }}"
-  when: false
-
 # ─── Languages ────────────────────────────────────────────────
 
 langs:
