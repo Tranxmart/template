@@ -29,6 +29,14 @@ def _find_copier(ctx):
         + "  devbox shell  (if devbox.json includes copier)",
     )
 
+def _basename(path):
+    """Extract the last non-empty component of a path."""
+    parts = path.split("/")
+    candidate = parts[-1]
+    if not candidate and len(parts) > 1:
+        candidate = parts[-2]
+    return candidate if candidate else path
+
 def _impl(ctx):
     """Implementation of init task."""
     copier_bin, copier_prefix = _find_copier(ctx)
@@ -43,7 +51,11 @@ def _impl(ctx):
         )
     )
 
-    copier_args = copier_prefix + ["copy", "--trust"]
+    output_dir = ctx.args.output_dir if ctx.args.output_dir else "."
+    project_name = _basename(output_dir)
+
+    copier_args = copier_prefix + ["copy", "--trust", "--vcs-ref", "HEAD"]
+    copier_args += ["--data", "project_name=" + project_name]
     if ctx.args.defaults:
         copier_args.append("--defaults")
     if ctx.args.skip_tasks:
@@ -51,7 +63,7 @@ def _impl(ctx):
 
     copier_args.append(template_url)
 
-    copier_args.append(ctx.args.output_dir if ctx.args.output_dir else ".")
+    copier_args.append(output_dir)
 
     _log(ctx, "Running: {} {}".format(copier_bin, " ".join(copier_args)))
 
